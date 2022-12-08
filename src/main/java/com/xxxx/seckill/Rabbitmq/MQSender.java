@@ -17,26 +17,39 @@ import org.springframework.stereotype.Service;
 @Service
 public class MQSender {
 
+
+
+
+
+
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    public void send(Object msg){
-        log.info("消息发送"+msg);
-        rabbitTemplate.convertAndSend("queue",msg);
-    }
+//    public void send(Object msg){
+//        log.info("消息发送"+msg);
+//        rabbitTemplate.convertAndSend("queue",msg);
+//    }
+//
+//    public void sendFanout(Object msg){
+//        log.info("消息发送"+msg);
+//        rabbitTemplate.convertAndSend("fanout_Exchange","",msg);
+//    }
+//
+//
+//    public void sendDirect01(Object msg){
+//        log.info("发送red消息："+msg);
+//        rabbitTemplate.convertAndSend("direct_Exchange","queue.red",msg);
+//    }
+//    public void sendDirect02(Object msg){
+//        log.info("发送green消息："+msg);
+//        rabbitTemplate.convertAndSend("direct_Exchange","queue.green",msg);
+//    }
 
-    public void sendFanout(Object msg){
-        log.info("消息发送"+msg);
-        rabbitTemplate.convertAndSend("fanout_Exchange","",msg);
-    }
 
 
-    public void sendDirect01(Object msg){
-        log.info("发送red消息："+msg);
-        rabbitTemplate.convertAndSend("direct_Exchange","queue.red",msg);
-    }
-    public void sendDirect02(Object msg){
-        log.info("发送green消息："+msg);
-        rabbitTemplate.convertAndSend("direct_Exchange","queue.green",msg);
+
+    public void sendSeckillMessage(String message){
+        log.info("发送消息:"+message);
+        rabbitTemplate.convertAndSend("seckillExchange","seckill.message",message);
     }
 }
