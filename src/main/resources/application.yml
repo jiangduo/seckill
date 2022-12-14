@@ -51,7 +51,7 @@ spring:
       # 测试连接是否可用的查询语句
       connection-test-query: SELECT 1
   redis:
-    host: 192.168.10.100
+    host: 192.168.10.129
     port: 6379
     #数据库  0库
     database: 0
@@ -69,11 +69,11 @@ spring:
         min-idle: 5
 
   rabbitmq:
-    host: 192.168.10.100
+    host: 192.168.10.129
     #用户名
-    username: admin
+    username: guest
     #密码
-    password: admin
+    password: guest
     #虚拟主机
     virtual-host: /
     #端口

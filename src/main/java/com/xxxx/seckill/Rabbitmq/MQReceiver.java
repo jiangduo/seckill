@@ -4,6 +4,7 @@ import com.xxxx.seckill.pojo.SeckillMessage;
 import com.xxxx.seckill.pojo.SeckillOrder;
 import com.xxxx.seckill.pojo.User;
 import com.xxxx.seckill.service.IGoodsService;
+import com.xxxx.seckill.service.IOrderService;
 import com.xxxx.seckill.utils.JsonUtil;
 import com.xxxx.seckill.vo.GoodsVo;
 import com.xxxx.seckill.vo.RespBean;
@@ -14,6 +15,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Totoro
@@ -59,6 +63,9 @@ public class MQReceiver {
     private IGoodsService goodsService;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private IOrderService orderService;
+//    @Autowired
 
     /**
      * 下单操作
@@ -75,12 +82,15 @@ public class MQReceiver {
         if(goodsVo.getStockCount()<1){
             return;
         }
-        return;
-//        SeckillOrder seckillOrder =
-//                (SeckillOrder) redisTemplate.opsForValue().get("order:" + user.getId() + ":" + goodsId);
-//        if (seckillOrder != null) {
 
-//            return RespBean.error(RespBeanEnum.REPEATE_ERROR);
+        SeckillOrder seckillOrder = (SeckillOrder) redisTemplate.opsForValue().get("order:" + user.getId() + ":" + goodId);
+
+        //重复抢购直接返回，
+        if (seckillOrder != null) {
+            return ;
         }
+
+        //下单
+        orderService.secKill(user,goodsVo);
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
@@ -24,7 +25,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Totoro
@@ -45,8 +49,10 @@ public class SecKillController implements InitializingBean {
     private RedisTemplate redisTemplate;
     @Autowired
     private MQSender mqSender;
+    @Autowired
+    private RedisScript<Long> script;
 
-
+    private Map<Long,Boolean> EmptyStockMap = new HashMap<>();
     /**
      * .
      * <p>
@@ -119,10 +125,15 @@ public class SecKillController implements InitializingBean {
 
             return RespBean.error(RespBeanEnum.REPEATE_ERROR);
         }
-
+        //内存标记减少redis访问
+        if(EmptyStockMap.get(goodsId)){
+            return  RespBean.error(RespBeanEnum.EMPTY_STOCK);
+        }
         //二、获取到递减之后的库存并判断redis
-        Long stock = valueOperations.decrement("seckillGoods" + goodsId);//递减：调用一次减一 且原子性(不会被线程打断？)，，返回结果是递减之后的库存，
+//        Long stock = valueOperations.decrement("seckillGoods" + goodsId);//递减：调用一次减一 且原子性(不会被线程打断？)，，返回结果是递减之后的库存，
+        Long stock = (Long) redisTemplate.execute(script, Collections.singletonList("seckillGoods" + goodsId), Collections.EMPTY_LIST);
         if (stock<0) {
+            EmptyStockMap.put(goodsId,true);
             //上面调用一次递减1，到这里是-1，在加一次。
             valueOperations.increment("seckillGoods"+goodsId);
             return RespBean.error(RespBeanEnum.EMPTY_STOCK);
@@ -160,6 +171,34 @@ public class SecKillController implements InitializingBean {
 //        return null;
     }
 
+
+    /**
+     *   获取秒杀结果
+     * @param user
+     * @param goodsId
+     * @return orderId:成功 -1;秒杀失败。0：排队中
+     */
+    @RequestMapping(value = "/result",method = RequestMethod.GET)
+    @ResponseBody
+    public RespBean getResult(User user,Long goodsId){
+        if(user ==null){
+            return RespBean.error(RespBeanEnum.SESSION_ERROR);
+        }
+        Long orderId = seckillOrderService.getResult(user,goodsId);
+        return RespBean.success(orderId);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
     /**
      * 一、系统初始化时，执行的方法，将商品库存加载redis中，
      *
@@ -176,6 +215,7 @@ public class SecKillController implements InitializingBean {
         //不为空就存到redis中
         list.forEach(goodsVo -> {
             redisTemplate.opsForValue().set("seckillGoods" + goodsVo.getId(), goodsVo.getStockCount());
+            EmptyStockMap.put(goodsVo.getId(),false);
         });
     }
 }

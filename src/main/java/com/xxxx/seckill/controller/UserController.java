@@ -35,25 +35,25 @@ public class UserController {
 
 
 
-    @RequestMapping("/mq")
-    @ResponseBody
-    public void mq(){
-        mqSender.send("hello");
-    }
-    @RequestMapping("/mq/fanout")
-    @ResponseBody
-    public void mqFanout(){
-        mqSender.sendFanout("hello,fanout");
-    }
-
-    @RequestMapping("/mq/red")
-    @ResponseBody
-    public void mq01(){
-        mqSender.sendDirect01("hello,red");
-    }
-    @RequestMapping("/mq/green")
-    @ResponseBody
-    public void mq02(){
-        mqSender.sendDirect02("hello,green");
-    }
+//    @RequestMapping("/mq")
+//    @ResponseBody
+//    public void mq(){
+//        mqSender.send("hello");
+//    }
+//    @RequestMapping("/mq/fanout")
+//    @ResponseBody
+//    public void mqFanout(){
+//        mqSender.sendFanout("hello,fanout");
+//    }
+//
+//    @RequestMapping("/mq/red")
+//    @ResponseBody
+//    public void mq01(){
+//        mqSender.sendDirect01("hello,red");
+//    }
+//    @RequestMapping("/mq/green")
+//    @ResponseBody
+//    public void mq02(){
+//        mqSender.sendDirect02("hello,green");
+//    }
 }

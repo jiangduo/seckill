@@ -19,6 +19,7 @@ import com.xxxx.seckill.vo.OrderDetailVo;
 import com.xxxx.seckill.vo.RespBeanEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -54,6 +55,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      */
     @Override
     public Order secKill(User user, GoodsVo goods) {
+
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+
         //减库存
         SeckillGoods seckillGoods =
                 seckillGoodsService.getOne(new QueryWrapper<SeckillGoods>().eq("goods_id", goods.getId()));
@@ -65,7 +69,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 //                seckillGoods.getStockCount()).eq("id", seckillGoods.getId()).gt("stock_count", 0));//判断库存大于零才能做操作,,eq是确保id，根据id更新
         boolean seckillGoodsResult = seckillGoodsService.update(new UpdateWrapper<SeckillGoods>().setSql("stock_count = stock_count-1").eq("goods_id", goods.getId()).gt("stock_count", 0));
         //吧减一操作和判断大于0操作一起进行具有原子性，
-        if (!seckillGoodsResult) {
+//        if (!seckillGoodsResult) {
+//            return null;
+//        }
+
+        //如果没有库存,不往下进行,同时设置isStockEmpty
+        if(seckillGoods.getStockCount()<1){
+            //判断是否有库存
+            valueOperations.set("isStockEmpty:"+goods.getId(),"0");
             return null;
         }
 //生成订单，
